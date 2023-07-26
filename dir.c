@@ -1,15 +1,13 @@
 #include "shell.h"
 
 /**
- * wcount - counts the number of words in a string
- * @str: string to count words in
- * @delim: delimiters separating words
- *
- * Return: Number of words in the string, -1 on failure
- */
-
+  * wcount - counts the number of words in a string
+  * @str: string to count words in
+  * @delim: delimeters separating words
+  *
+  * Return: Number of words in string, -1 on failure
+  */
 int wcount(char *str, char *delim)
-
 {
 	int count;
 	char *dup;
@@ -29,66 +27,14 @@ int wcount(char *str, char *delim)
 }
 
 /**
- * change_to_home - change the current working directory to home
+ * change_dir - changes current working directory and updates OLDPWD
+ * @cmd: command to change working directory
  *
  * Return: 0 if successful, -1 otherwise
  */
-
-int change_to_home(void)
-
-{
-	char *oldpwd, *pwd, buf[256];
-	size_t size = 256;
-
-	oldpwd = getcwd(buf, size);
-	chdir(_getenv("HOME"));
-	setenv("OLDPWD", oldpwd, 1);
-	setenv("PWD", _getenv("PWD"), 1);
-
-	return (0);
-}
-
-/**
- * change_to_previous - change the current working directory to the
- *                      previous one
- *
- * Return: 0 if successful, -1 otherwise
- */
-
-int change_to_previous(void)
-
-{
-	char *oldpwd, *pwd, buf[256];
-	size_t size = 256;
-
-	if (_getenv("OLDPWD") == NULL)
-	{
-		perror("OLDPWD"); /* OLDPWD not set */
-		return (-1);
-	}
-		else
-	{
-		oldpwd = getcwd(buf, size);
-		chdir(_getenv("OLDPWD"));
-		setenv("OLDPWD", oldpwd, 1); /* Update OLDPWD */
-		pwd = getcwd(buf, size);
-		setenv("PWD", pwd, 1);
-	}
-
-	return (0);
-}
-
-/**
- * change_dir - changes the current working directory and updates OLDPWD
- * @cmd: command to change the working directory
- *
- * Return: 0 if successful, -1 otherwise
- */
-
 int change_dir(char *cmd)
-
 {
-	char *path, *dup, buf[256];
+	char *path, *oldpwd, *pwd, *dup, buf[256];
 	int words;
 	size_t size = 256;
 
@@ -101,30 +47,54 @@ int change_dir(char *cmd)
 		dup = NULL;
 		return (-1);
 	}
-
 	strtok(cmd, " \t\r");
 	path = strtok(NULL, " ");
-
-	if (path == NULL) /* home directory */
+	if (path == NULL)			/* home directory */
 	{
+		oldpwd = getcwd(buf, size);
+		chdir(_getenv("HOME"));
+		setenv("OLDPWD", oldpwd, 1);
+		setenv("PWD", _getenv("PWD"), 1);
 		free(dup);
 		dup = NULL;
-		return (change_to_home());
+		return (0);
 	}
-
 	if (_strcmp(path, "-") == 0)
 	{
-		free(dup);
-		dup = NULL;
-		return (change_to_previous());
+		if (_getenv("OLDPWD") == NULL)
+		{
+			perror("OLDPWD");	/* OLDPWD not net */
+			free(dup);
+			dup = NULL;
+			return (-1);
+		}
+		else
+		{
+			oldpwd = getcwd(buf, size);
+			chdir(_getenv("OLDPWD"));
+			setenv("OLDPWD", oldpwd, 1);	/* Update OLDPWD */
+			pwd = getcwd(buf, size);
+			setenv("PWD", pwd, 1);
+			free(dup);
+			dup = NULL;
+			return (0);
+		}
 	}
-
-	if (change_directory(path) == -1)
+	oldpwd = getcwd(buf, size);
+	if (chdir(path) == -1)
 	{
+		print_error(_getenv("_"));
+		print_error(": 1: cd: can't cd to ");
+		write(STDERR_FILENO, path, _strlen(path));
+		print_error("\n");
 		free(dup);
 		dup = NULL;
 		return (-1);
 	}
-
+	setenv("OLDPWD", oldpwd, 1);	/* Update OLDPWD */
+	pwd = getcwd(buf, size);
+	setenv("PWD", pwd, 1);
+	free(dup);
+	dup = NULL;
 	return (0);
 }
