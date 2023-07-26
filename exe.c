@@ -7,7 +7,6 @@
  */
 
 int countArgs(const char *cmd)
-
 {
 	char *token, *delimiters = " \n\t\r", *copy_cmd;
 	int num_tokens = 0;
@@ -35,7 +34,6 @@ int countArgs(const char *cmd)
  */
 
 char **split_string(const char *cmd)
-
 {
 	char *token, *delimiters = " \n\t\r", *copy_cmd;
 	char **av;
@@ -82,9 +80,7 @@ char **split_string(const char *cmd)
  * @envp: envp is set to NULL
  * Return: nothing
  */
-
 void execute_cmd(const char *cmd, char *const envp[])
-
 {
 	int status;
 	char **new_av = split_string(cmd);
@@ -126,16 +122,13 @@ void execute_cmd(const char *cmd, char *const envp[])
 	else
 		waitpid(pid, &status, 0);
 	free_new_av(new_av);
-	free(path_cmd);
 }
 
 /**
  * free_new_av - it frees the new_av variable used in the execve function
  * @new_av: the variable to be freed
  */
-
 void free_new_av(char **new_av)
-
 {
 	int i = 0;
 
@@ -147,4 +140,3 @@ void free_new_av(char **new_av)
 	}
 	free(new_av);
 }
-

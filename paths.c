@@ -1,89 +1,68 @@
 #include "shell.h"
 
 /**
- * handle_path - it is used to handle the path environ
- * @cmd: the command to check if its in the path environ
- * Return: the path if its in the path environ
+ * make_path - creates a path to a command
+ * @path: path to the command
+ * @cmd: command to create the path to
+ * Return: pointer to the path
  */
 
-char *handle_path(const char *cmd)
-
+char *make_path(char *path, char *cmd)
 {
-	const char *var = "PATH";
-	const char *delim = ":";
-	char *path = _getenv(var), *path_copy = NULL, *path_token;
-	char *file_path = NULL;
-	size_t cmd_len = _strlen(cmd), dir_len;
-	struct stat check_path;
+	char *cmd_path = NULL;
 
-	if (path == NULL)
-	{
-		_perror(cmd, "not found");
-		exit(EXIT_FAILURE);
-	}
-	path_copy = _strdup(path);
-	if (path_copy == NULL)
-	{
-		perror("strdup");
-		exit(EXIT_FAILURE);
-	}
-	path_token = strtok(path_copy, delim);
-	while (path_token)
-	{
-		dir_len = _strlen(path_token);
-		if (dir_len + cmd_len + 2 <= MAX_PATH_LENGTH)
-		{
-			file_path = (char *)malloc(dir_len + cmd_len + 2);
-			if (file_path == NULL)
-			{
-				perror("malloc failed");
-				exit(EXIT_FAILURE);
-			}
-			_strcpy(file_path, path_token);
-			_strcat(file_path, "/");
-			_strcat(file_path, cmd);
-			if (stat(file_path, &check_path) == 0)
-			{
-				free(path_copy);
-				return (file_path);
-			}
-			free(file_path);
-			file_path = NULL;
-		}
-		path_token = strtok(NULL, delim);
-	}
-	free(path_copy);
-	if (access(cmd, X_OK) == 0)
-		return ((char *)cmd);
-	return (NULL);
+	cmd_path = malloc(sizeof(char) * (_strlen(path) + _strlen(cmd) + 2));
+	if (cmd_path == NULL)
+		return (NULL);
+	_strcpy(cmd_path, path);
+	_strcat(cmd_path, "/");
+	_strcat(cmd_path, cmd);
+	return (cmd_path);
 }
 
 /**
- * _getenv - it gets the environ variable
- * @str: the string to be checked if it's in the environ
- * Return: the environ if present
+ * get_path - gets the path of a command
+ * @cmd: command to get the path of
+ * Return: path of the command
  */
 
-char *_getenv(const char *str)
-
+char *get_path(char *cmd)
 {
-	char **env = environ;
-	char *find_equalto;
-	int len;
+	char *path = NULL, *path_copy = NULL, **tokens = NULL, *cmd_path = NULL;
+	struct stat st;
+	int i = 0;
 
-	while (*env != NULL)
+	if (stat(cmd, &st) == 0)
+		return (cmd);
+	if (!cmd)
+		return (NULL);
+	if (cmd[0] == '/')
 	{
-		find_equalto = _strchr(*env, '=');
-		if (find_equalto != NULL)
-		{
-			len = find_equalto - *env;
-			if (_strncmp(str, *env, len) == 0)
-			{
-				return (find_equalto + 1);
-			}
-		}
-		env++;
+		if (stat(cmd, &st) == 0)
+			return (cmd);
+		return (NULL);
 	}
-
+	path = _getenv("PATH");
+	path_copy = _strdup(path);
+	tokens = ft_split(path_copy, ":");
+	while (*tokens)
+	{
+		cmd_path = make_path(*tokens, cmd);
+		if (stat(cmd_path, &st) == 0)
+		{
+			free(path_copy);
+			i = 0;
+			while (tokens[i])
+			{
+				free(tokens[i]);
+				i++;
+			}
+			free(tokens);
+			return (cmd_path);
+		}
+		free(cmd_path);
+		tokens++;
+	}
+	free(path_copy);
 	return (NULL);
 }
