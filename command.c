@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * display_prompt - Display the shell prompt.
+ * display_prompt - Displays the shell prompt.
  */
 void display_prompt(void)
 {
@@ -9,9 +9,9 @@ void display_prompt(void)
 }
 
 /**
- * read_command - Read a command line from the user.
+ * read_command - Reads a command line from the user.
  *
- * Return: The pointer to the input command line.
+ * Return: A pointer to the command line input or NULL on error.
  */
 char *read_command(void)
 {
@@ -33,6 +33,7 @@ char *read_command(void)
 		{
 			/* Handle read error */
 			perror("read_command");
+			free(line);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -41,7 +42,7 @@ char *read_command(void)
 }
 
 /**
- * main - Entry point for the simple shell program.
+ * main - The main function that runs the shell.
  *
  * Return: Always 0.
  */
@@ -53,10 +54,13 @@ int main(void)
 	{
 		display_prompt();
 		command_line = read_command();
+
 		/* Execute the command */
 		printf("Executing: %s", command_line);
+
 		free(command_line);
 	}
 
 	return (0);
 }
+
